@@ -1,75 +1,30 @@
-import React, { useState } from 'react';
-import BookForm from './components/BookForm';
-import BookList from './components/BookList';
-import BorrowerForm from './components/BorrowerForm';
-import BorrowerList from './components/BorrowerList';
-import BorrowBook from './components/BorrowBook';
-import './App.css';
+import React from "react";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import Register from "./pages/Register";
+import Login from "./pages/Login";
+import Home from "./pages/Home";
 
 function App() {
-const [activeTab, setActiveTab] = useState('books');
-  const [refreshKey, setRefreshKey] = useState(0);
-
-  const handleBookAdded = () => {
-    setRefreshKey(prev => prev + 1);
-  };
-
-  const handleBorrowerAdded = () => {
-    setRefreshKey(prev => prev + 1);
-  };
-
-  const handleBorrowSuccess = () => {
-    setRefreshKey(prev => prev + 1);
-  };
+  // Check if user is logged in
+  const isAuthenticated = !!localStorage.getItem("user");
 
   return (
-    <div className="app">
-      <header>
-        <h1>Library Management System</h1>
-        <nav>
-          <button 
-            className={activeTab === 'books' ? 'active' : ''} 
-            onClick={() => setActiveTab('books')}
-          >
-            Books
-          </button>
-          <button 
-            className={activeTab === 'borrowers' ? 'active' : ''} 
-            onClick={() => setActiveTab('borrowers')}
-          >
-            Borrowers
-          </button>
-          <button 
-            className={activeTab === 'borrow' ? 'active' : ''} 
-            onClick={() => setActiveTab('borrow')}
-          >
-            Borrow Book
-          </button>
-        </nav>
-      </header>
+    <Router>
+      <Routes>
+        {/* Public routes */}
+        <Route path="/register" element={<Register />} />
+        <Route path="/login" element={<Login />} />
 
-      <main>
-        {activeTab === 'books' && (
-          <div className="books-section">
-            <BookForm onBookAdded={handleBookAdded} />
-            <BookList key={refreshKey} onBookDeleted={handleBookAdded} />
-          </div>
-        )}
+        {/* Protected route */}
+        <Route
+          path="/home"
+          element={isAuthenticated ? <Home /> : <Navigate to="/login" />}
+        />
 
-        {activeTab === 'borrowers' && (
-          <div className="borrowers-section">
-            <BorrowerForm onBorrowerAdded={handleBorrowerAdded} />
-            <BorrowerList key={refreshKey} />
-          </div>
-        )}
-
-        {activeTab === 'borrow' && (
-          <div className="borrow-section">
-            <BorrowBook onBorrowSuccess={handleBorrowSuccess} />
-          </div>
-        )}
-      </main>
-    </div>
+        {/* Redirect any unknown route to login */}
+        <Route path="*" element={<Navigate to="/login" />} />
+      </Routes>
+    </Router>
   );
 }
 

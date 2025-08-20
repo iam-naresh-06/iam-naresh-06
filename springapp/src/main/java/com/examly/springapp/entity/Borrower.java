@@ -1,92 +1,68 @@
 package com.examly.springapp.entity;
 
 import jakarta.persistence.*;
-import java.time.LocalDate;
-import java.util.ArrayList;
+import lombok.Data;
+
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
+@Table(name = "borrowers")
+@Data
 public class Borrower {
-    @Id 
+
+    @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    
+
+    @OneToOne
+    @JoinColumn(name = "user_id", nullable = false, unique = true)
+    private User user;
+
+    @Column(unique = true, nullable = false)
+    private String libraryCardNumber;
+
     @Column(nullable = false)
-    private String name;
-    
-    @Column(nullable = false, unique = true)
-    private String email;
-    
+    private Integer borrowingLimit = 5;
+
     @Column(nullable = false)
-    private String phone;
-    
-    private LocalDate membershipDate = LocalDate.now();
-    
+    private Integer currentBorrowedCount = 0;
+
+    @Column(nullable = false)
+    private Boolean isActive = true;
+
+    private String emergencyContact;
+    private String membershipType; // e.g., "STUDENT", "FACULTY", "STAFF"
+    private LocalDateTime membershipStartDate;
+    private LocalDateTime membershipEndDate;
+
     @OneToMany(mappedBy = "borrower", cascade = CascadeType.ALL)
-    private List<BorrowRecord> borrowRecords = new ArrayList<>();
-    
-    // Constructors
-    public Borrower() {
-    }
-    
-    public Borrower(String name, String email, String phone) {
-        this.name = name;
-        this.email = email;
-        this.phone = phone;
-    }
-    
-    // Getters and Setters
-    public Long getId() {
-        return id;
+    private List<BorrowRecord> borrowHistory;
+
+    // Helper method to check if borrower can borrow more books
+    public boolean canBorrowMore() {
+        return isActive && currentBorrowedCount < borrowingLimit;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    // Helper method to increment borrowed count
+    public void incrementBorrowedCount() {
+        if (currentBorrowedCount < borrowingLimit) {
+            currentBorrowedCount++;
+        }
     }
 
-    public String getName() {
-        return name;
+    // Helper method to decrement borrowed count
+    public void decrementBorrowedCount() {
+        if (currentBorrowedCount > 0) {
+            currentBorrowedCount--;
+        }
+    }
+    // Add this method to Borrower entity
+    public String getUserEmail() {
+        return user != null ? user.getEmail() : null;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getPhone() {
-        return phone;
-    }
-
-    public void setPhone(String phone) {
-        this.phone = phone;
-    }
-
-    public LocalDate getMembershipDate() {
-        return membershipDate;
-    }
-
-    public void setMembershipDate(LocalDate membershipDate) {
-        this.membershipDate = membershipDate;
-    }
-
-    public List<BorrowRecord> getBorrowRecords() {
-        return borrowRecords;
-    }
-
-    public void setBorrowRecords(List<BorrowRecord> borrowRecords) {
-        this.borrowRecords = borrowRecords;
-    }
-
-    // Helper method to add borrow record
-    public void addBorrowRecord(BorrowRecord borrowRecord) {
-        borrowRecords.add(borrowRecord);
-        borrowRecord.setBorrower(this);
+    public String getUserFullName() {
+        return user != null ? user.getFirstName() + " " + user.getLastName() : null;
     }
 }

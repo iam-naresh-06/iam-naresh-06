@@ -2,52 +2,63 @@ package com.examly.springapp.controller;
 
 import com.examly.springapp.entity.Book;
 import com.examly.springapp.service.BookService;
-import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+// import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/books")
+@RequiredArgsConstructor
 public class BookController {
 
     private final BookService bookService;
 
-    @Autowired
-    public BookController(BookService bookService) {
-        this.bookService = bookService;
-    }
-
-    @PostMapping
-    public ResponseEntity<Book> createBook(@Valid @RequestBody Book book) {
-        Book savedBook = bookService.addBook(book);
-        return ResponseEntity.status(HttpStatus.CREATED).body(savedBook); // Changed to 201 CREATED
+    @GetMapping
+    public List<Book> getAllBooks() {
+        return bookService.getAllBooks();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Book> getBookById(@PathVariable Long id) {
-        return ResponseEntity.ok(bookService.getBookById(id));
+    public Book getBookById(@PathVariable Long id) {
+        return bookService.getBookById(id).orElseThrow(() -> new RuntimeException("Book not found"));
     }
 
-    @GetMapping
-    public ResponseEntity<List<Book>> getAllBooks() {
-        return ResponseEntity.ok(bookService.getAllBooks());
+    @PostMapping
+    @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
+    public Book addBook(@RequestBody Book book) {
+        return bookService.addBook(book);
     }
 
-    @PutMapping(value = "/{id}", consumes = "application/json", produces = "application/json")
-    public ResponseEntity<Book> updateBook(
-            @PathVariable Long id,
-            @Valid @RequestBody Book bookDetails) {
-        Book updatedBook = bookService.updateBook(id, bookDetails);
-        return ResponseEntity.ok(updatedBook);
+    @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
+    public Book updateBook(@PathVariable Long id, @RequestBody Book bookDetails) {
+        return bookService.updateBook(id, bookDetails);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteBook(@PathVariable Long id) {
+    @PreAuthorize("hasRole('ADMIN')")
+    public void deleteBook(@PathVariable Long id) {
         bookService.deleteBook(id);
-        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/search")
+    public List<Book> searchBooks(@RequestParam(required = false) String query,
+                                  @RequestParam(required = false) String author,
+                                  @RequestParam(required = false) String genre,
+                                  @RequestParam(required = false) Boolean available) {
+        return bookService.searchBooks(query, author, genre, available);
+    }
+
+    @GetMapping("/search/advanced")
+    public List<Book> advancedSearch(@RequestParam(required = false) String title,
+                                     @RequestParam(required = false) String author,
+                                     @RequestParam(required = false) String isbn,
+                                     @RequestParam(required = false) String genre,
+                                     @RequestParam(required = false) Integer publicationYear,
+                                     @RequestParam(required = false) Boolean available) {
+        return bookService.advancedSearch(title, author, isbn, genre, publicationYear, available);
     }
 }

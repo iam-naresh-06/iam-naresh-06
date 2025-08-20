@@ -1,66 +1,87 @@
 package com.examly.springapp.service;
 
 import com.examly.springapp.entity.Book;
-import com.examly.springapp.exception.BusinessValidationException;
-import com.examly.springapp.exception.ResourceNotFoundException;
 import com.examly.springapp.repository.BookRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
-@Transactional
+@RequiredArgsConstructor
 public class BookService {
 
-    @Autowired
-    private BookRepository bookRepository;
-
-    public Book addBook(Book book) {
-        // Validate ISBN presence
-        if (book.getIsbn() == null || book.getIsbn().trim().isEmpty()) {
-            throw new BusinessValidationException("ISBN is required");
-        }
-        
-        // Check for duplicate ISBN using both methods for backward compatibility
-        if (bookRepository.existsByIsbn(book.getIsbn()) || 
-            bookRepository.findByIsbn(book.getIsbn()).isPresent()) {
-            throw new BusinessValidationException("ISBN already exists");
-        }
-        
-        return bookRepository.save(book);
-    }
-
-    public Book getBookById(Long id) {
-        return bookRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Book not found"));
-    }
+    private final BookRepository bookRepository;
 
     public List<Book> getAllBooks() {
         return bookRepository.findAll();
     }
 
-    public Book updateBook(Long id, Book bookDetails) {
-        Book existingBook = getBookById(id);
-        
-        if (!existingBook.getIsbn().equals(bookDetails.getIsbn())) {
-            throw new BusinessValidationException("ISBN cannot be changed");
+    public Optional<Book> getBookById(Long id) {
+        return bookRepository.findById(id);
+    }
+
+    public Book addBook(Book book) {
+        if (bookRepository.existsByIsbn(book.getIsbn())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "ISBN already exists");
         }
-        
-        existingBook.setTitle(bookDetails.getTitle());
-        existingBook.setAuthor(bookDetails.getAuthor());
-        existingBook.setPublicationYear(bookDetails.getPublicationYear());
-        existingBook.setAvailable(bookDetails.getAvailable());
-        
-        return bookRepository.save(existingBook);
+        return bookRepository.save(book);
+    }
+
+    public Book updateBook(Long id, Book bookDetails) {
+        Book book = bookRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Book not found"));
+
+        if (bookDetails.getTitle() != null) book.setTitle(bookDetails.getTitle());
+        if (bookDetails.getAuthor() != null) book.setAuthor(bookDetails.getAuthor());
+        if (bookDetails.getIsbn() != null) book.setIsbn(bookDetails.getIsbn());
+        if (bookDetails.getPublicationYear() != null) book.setPublicationYear(bookDetails.getPublicationYear());
+        if (bookDetails.getGenre() != null) book.setGenre(bookDetails.getGenre());
+        if (bookDetails.getPublisher() != null) book.setPublisher(bookDetails.getPublisher());
+        if (bookDetails.getDescription() != null) book.setDescription(bookDetails.getDescription());
+        if (bookDetails.getLocation() != null) book.setLocation(bookDetails.getLocation());
+        if (bookDetails.getTotalCopies() != null) book.setTotalCopies(bookDetails.getTotalCopies());
+        if (bookDetails.getAvailableCopies() != null) book.setAvailableCopies(bookDetails.getAvailableCopies());
+
+        return bookRepository.save(book);
     }
 
     public void deleteBook(Long id) {
-        if (!bookRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Book not found with id: " + id);
+        Book book = bookRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Book not found"));
+        bookRepository.delete(book);
+    }
+
+    public List<Book> searchBooks(String query, String author, String genre, Boolean available) {
+        if (query != null && !query.trim().isEmpty()) {
+            return bookRepository.findByTitleContainingIgnoreCaseOrAuthorContainingIgnoreCaseOrIsbnContainingIgnoreCase(query, query, query);
+        } else if (author != null && !author.trim().isEmpty()) {
+            return bookRepository.findByAuthorContainingIgnoreCase(author);
+        } else if (genre != null && !genre.trim().isEmpty()) {
+            return bookRepository.findByGenreContainingIgnoreCase(genre);
+        } else if (available != null) {
+            if (available) {
+                return bookRepository.findByAvailableCopiesGreaterThan(0);
+            } else {
+                return bookRepository.findByAvailableCopies(0);
+            }
+        } else {
+            return bookRepository.findAll();
         }
-        bookRepository.deleteById(id);
+    }
+
+    public List<Book> advancedSearch(String title, String author, String isbn, String genre, Integer publicationYear, Boolean available) {
+        return bookRepository.findAll().stream()
+                .filter(book -> title == null || book.getTitle().toLowerCase().contains(title.toLowerCase()))
+                .filter(book -> author == null || book.getAuthor().toLowerCase().contains(author.toLowerCase()))
+                .filter(book -> isbn == null || book.getIsbn().contains(isbn))
+                .filter(book -> genre == null || (book.getGenre() != null && book.getGenre().toLowerCase().contains(genre.toLowerCase())))
+                .filter(book -> publicationYear == null || book.getPublicationYear().equals(publicationYear))
+                .filter(book -> available == null || book.isAvailable() == available)
+                .collect(Collectors.toList());
     }
 }

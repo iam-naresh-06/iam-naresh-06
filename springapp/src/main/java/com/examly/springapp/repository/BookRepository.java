@@ -2,19 +2,14 @@ package com.examly.springapp.repository;
 
 import com.examly.springapp.entity.Book;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
-import java.util.List;
-import java.util.Optional;
 
-@Repository
+import java.util.List;
+
 public interface BookRepository extends JpaRepository<Book, Long> {
-    Optional<Book> findByIsbn(String isbn);
+    List<Book> findByTitleContainingIgnoreCaseOrAuthorContainingIgnoreCaseOrIsbnContainingIgnoreCase(String title, String author, String isbn);
+    List<Book> findByAuthorContainingIgnoreCase(String author);
+    List<Book> findByGenreContainingIgnoreCase(String genre);
+    List<Book> findByAvailableCopiesGreaterThan(int count);
+    List<Book> findByAvailableCopies(int count);
     boolean existsByIsbn(String isbn);
-    List<Book> findByTitle(String title);
-    List<Book> findByAuthor(String author);
-    List<Book> findByAvailable(Boolean available);
-    
-    default Book findByIdOrThrow(Long id) {
-        return findById(id).orElseThrow();
-    }
 }
