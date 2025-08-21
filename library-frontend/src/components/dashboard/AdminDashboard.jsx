@@ -26,8 +26,8 @@ const AdminDashboard = () => {
       setStats({
         totalBooks: books.length,
         totalBorrowers: borrowers.length,
-        activeLoans: 0, // You'll need to implement this
-        overdueBooks: 0 // You'll need to implement this
+        activeLoans: 0,
+        overdueBooks: 0
       });
     } catch (error) {
       console.error('Error loading dashboard data:', error);
@@ -42,7 +42,6 @@ const AdminDashboard = () => {
     <div className="dashboard">
       <h1>Admin Dashboard</h1>
       
-      {/* Statistics Cards */}
       <div className="stats-grid">
         <div className="stat-card">
           <h3>Total Books</h3>
@@ -69,7 +68,6 @@ const AdminDashboard = () => {
         </div>
       </div>
 
-      {/* Quick Actions */}
       <div className="quick-actions">
         <h2>Quick Actions</h2>
         <div className="action-buttons">
@@ -102,27 +100,6 @@ const AdminDashboard = () => {
             <span>⚙️</span>
             System Config
           </Link>
-        </div>
-      </div>
-
-      {/* Recent Activity */}
-      <div className="recent-activity">
-        <h2>Recent Activity</h2>
-        <div className="activity-list">
-          <div className="activity-item">
-            <span className="activity-icon">📚</span>
-            <div className="activity-details">
-              <p>New book added: "Sample Book"</p>
-              <span className="activity-time">2 hours ago</span>
-            </div>
-          </div>
-          <div className="activity-item">
-            <span className="activity-icon">👤</span>
-            <div className="activity-details">
-              <p>New borrower registered: John Doe</p>
-              <span className="activity-time">5 hours ago</span>
-            </div>
-          </div>
         </div>
       </div>
     </div>

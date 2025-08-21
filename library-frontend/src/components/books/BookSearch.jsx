@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { bookService } from '../../services/bookService';
+import BookCard from './BookCard';
 
 const BookSearch = () => {
   const [searchCriteria, setSearchCriteria] = useState({
@@ -138,25 +139,7 @@ const BookSearch = () => {
         {results.length > 0 ? (
           <div className="results-grid">
             {results.map(book => (
-              <div key={book.id} className="book-result-card">
-                <h3>{book.title}</h3>
-                <p className="author">by {book.author}</p>
-                <p className="isbn">ISBN: {book.isbn}</p>
-                <p className="genre">Genre: {book.genre}</p>
-                <p className="year">Published: {book.publicationYear}</p>
-                <p className={`availability ${book.availableCopies > 0 ? 'available' : 'unavailable'}`}>
-                  {book.availableCopies > 0 
-                    ? `${book.availableCopies} of ${book.totalCopies} available` 
-                    : 'All copies borrowed'}
-                </p>
-                <p className="location">Location: {book.location || 'Main Collection'}</p>
-                
-                <div className="result-actions">
-                  <button disabled={book.availableCopies === 0}>
-                    {book.availableCopies > 0 ? 'Borrow This Book' : 'Check Availability'}
-                  </button>
-                </div>
-              </div>
+              <BookCard key={book.id} book={book} />
             ))}
           </div>
         ) : (

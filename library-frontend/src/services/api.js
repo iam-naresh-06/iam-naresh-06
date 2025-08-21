@@ -1,24 +1,39 @@
-// All API calls related to User (register, login, etc.)
-const BASE_URL = "http://localhost:3000/api/api/users";
+import axios from 'axios';
 
-export const registerUser = async (userData) => {
-  try {
-    const response = await fetch(`${BASE_URL}/register`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(userData)
-    });
+const API_BASE_URL = 'http://localhost:8080/api';
 
-    console.log("Response status:", response.status);
+const api = axios.create({
+  baseURL: API_BASE_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
 
-    if (!response.ok) {
-      const text = await response.text();
-      throw new Error("Registration failed: " + text);
+// Add token to requests
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('library_token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
-
-    return await response.json();
-  } catch (error) {
-    console.error("Error during registration:", error);
-    alert(error.message);
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
   }
-};
+);
+
+// Handle auth errors
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('library_token');
+      localStorage.removeItem('library_user');
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
+
+export default api;
