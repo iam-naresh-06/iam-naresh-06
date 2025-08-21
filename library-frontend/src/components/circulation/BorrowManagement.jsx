@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { bookService } from '../../services/bookService';
-import { borrowerService } from '../../services/borrowerService';
-import { circulationService } from '../../services/circulationService';
+import bookService from '../../services/bookService';
+import borrowerService from '../../services/borrowerService';
+import circulationService from '../../services/circulationService';
 
 const BorrowManagement = () => {
   const [formData, setFormData] = useState({

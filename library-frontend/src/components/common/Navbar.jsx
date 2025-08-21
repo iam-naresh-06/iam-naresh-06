@@ -1,43 +1,97 @@
-import React from 'react';
+// src/components/common/Navbar.jsx
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useNotifications } from '../../context/NotificationContext';
 
 const Navbar = () => {
-  const { user, logout, isAuthenticated } = useAuth();
+  const { user, logout } = useAuth();
+  const { notifications } = useNotifications();
   const navigate = useNavigate();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
     navigate('/login');
   };
 
+  const getDashboardPath = () => {
+    if (!user) return '/login';
+    switch (user.role) {
+      case 'ADMIN': return '/admin/users';
+      case 'LIBRARIAN': return '/books';
+      case 'STAFF': return '/circulation/borrow';
+      default: return '/books/search';
+    }
+  };
+
+  const unreadNotifications = notifications.filter(n => !n.read).length;
+
   return (
-    <nav style={{ padding: '1rem', background: '#333', color: 'white' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Link to="/" style={{ color: 'white', textDecoration: 'none', fontSize: '1.5rem' }}>
-          Library Management System
-        </Link>
-        
-        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-          {isAuthenticated ? (
-            <>
-              <Link to="/books" style={{ color: 'white', textDecoration: 'none' }}>Books</Link>
-              {user && (user.role === 'ADMIN' || user.role === 'LIBRARIAN') && (
-                <Link to="/borrowers" style={{ color: 'white', textDecoration: 'none' }}>Borrowers</Link>
-              )}
-              <span>Welcome, {user.username}</span>
-              <button onClick={handleLogout} style={{ padding: '0.5rem 1rem' }}>
-                Logout
-              </button>
-            </>
-          ) : (
-            <>
-              <Link to="/login" style={{ color: 'white', textDecoration: 'none' }}>Login</Link>
-              <Link to="/register" style={{ color: 'white', textDecoration: 'none' }}>Register</Link>
-            </>
-          )}
-        </div>
+    <nav className="navbar">
+      <div className="navbar-brand">
+        <Link to={getDashboardPath()}>Library Management System</Link>
       </div>
+
+      {user && (
+        <>
+          <button 
+            className="navbar-toggle"
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+          >
+            ☰
+          </button>
+
+          <div className={`navbar-menu ${isMenuOpen ? 'active' : ''}`}>
+            <div className="navbar-start">
+              {/* Admin Links */}
+              {user.role === 'ADMIN' && (
+                <>
+                  <Link to="/admin/users" className="navbar-item">Users</Link>
+                  <Link to="/admin/config" className="navbar-item">Configuration</Link>
+                  <Link to="/admin/analytics" className="navbar-item">Analytics</Link>
+                </>
+              )}
+
+              {/* Librarian Links */}
+              {(user.role === 'ADMIN' || user.role === 'LIBRARIAN') && (
+                <>
+                  <Link to="/books" className="navbar-item">Books</Link>
+                  <Link to="/borrowers" className="navbar-item">Borrowers</Link>
+                </>
+              )}
+
+              {/* Staff Links */}
+              {(user.role === 'ADMIN' || user.role === 'LIBRARIAN' || user.role === 'STAFF') && (
+                <>
+                  <Link to="/circulation/borrow" className="navbar-item">Borrow</Link>
+                  <Link to="/circulation/return" className="navbar-item">Return</Link>
+                </>
+              )}
+
+              {/* All Authenticated Users */}
+              <Link to="/books/search" className="navbar-item">Search</Link>
+              <Link to="/circulation/history" className="navbar-item">History</Link>
+            </div>
+
+            <div className="navbar-end">
+              <Link to="/notifications" className="navbar-item">
+                Notifications
+                {unreadNotifications > 0 && (
+                  <span className="notification-badge">{unreadNotifications}</span>
+                )}
+              </Link>
+              <div className="navbar-item user-menu">
+                <span>Welcome, {user.firstName}</span>
+                <div className="dropdown">
+                  <Link to="/profile" className="dropdown-item">Profile</Link>
+                  <button onClick={handleLogout} className="dropdown-item">Logout</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </nav>
   );
 };

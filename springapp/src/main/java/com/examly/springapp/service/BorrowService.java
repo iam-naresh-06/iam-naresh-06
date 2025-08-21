@@ -151,4 +151,16 @@ public class BorrowService {
         // You might want to get the borrower's limit from the borrower entity
         return activeBorrows < 5; // Default limit of 5
     }
+     public List<BorrowRecord> findDueAndOverdueRecords() {
+        LocalDate today = LocalDate.now();
+        LocalDate twoDaysFromNow = today.plusDays(2);
+        
+        // Find records that are due today, within 2 days, or overdue
+        return borrowRecordRepository.findByDueDateBetweenOrDueDateBeforeAndStatus(
+            today, 
+            twoDaysFromNow, 
+            today, 
+            BorrowRecord.Status.BORROWED
+        );
+    }
 }

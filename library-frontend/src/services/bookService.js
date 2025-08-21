@@ -1,38 +1,45 @@
+// src/services/bookService.js
 import api from './api';
 
-export const bookService = {
-  getAllBooks: () => {
-    return api.get('/books')
-      .then(response => response.data);
-  },
-
-  getBookById: (id) => {
-    return api.get(`/books/${id}`)
-      .then(response => response.data);
-  },
-
-  createBook: (bookData) => {
-    return api.post('/books', bookData)
-      .then(response => response.data);
-  },
-
-  updateBook: (id, bookData) => {
-    return api.put(`/books/${id}`, bookData)
-      .then(response => response.data);
-  },
-
-  deleteBook: (id) => {
-    return api.delete(`/books/${id}`);
-  },
-
-  searchBooks: (query, author, genre, available) => {
-    const params = new URLSearchParams();
-    if (query) params.append('query', query);
-    if (author) params.append('author', author);
-    if (genre) params.append('genre', genre);
-    if (available !== undefined) params.append('available', available);
-    
-    return api.get(`/books/search?${params.toString()}`)
-      .then(response => response.data);
-  }
+// Named exports
+export const getAllBooks = async () => {
+  const response = await api.get('/books');
+  return response.data;
 };
+
+export const getBookById = async (id) => {
+  const response = await api.get(`/books/${id}`);
+  return response.data;
+};
+
+export const createBook = async (bookData) => {
+  const response = await api.post('/books', bookData);
+  return response.data;
+};
+
+export const updateBook = async (id, bookData) => {
+  const response = await api.put(`/books/${id}`, bookData);
+  return response.data;
+};
+
+export const deleteBook = async (id) => {
+  const response = await api.delete(`/books/${id}`);
+  return response.data;
+};
+
+export const searchBooks = async (query) => {
+  const response = await api.get('/books/search', { params: query });
+  return response.data;
+};
+
+// Default export for backward compatibility
+const bookService = {
+  getAllBooks,
+  getBookById,
+  createBook,
+  updateBook,
+  deleteBook,
+  searchBooks
+};
+
+export default bookService;

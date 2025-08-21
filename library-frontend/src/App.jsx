@@ -1,9 +1,14 @@
+// src/App.jsx
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { useAuth } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { NotificationProvider } from './context/NotificationContext';
+import { ThemeProvider } from './context/ThemeContext';
+
+// Components
 import Navbar from './components/common/Navbar';
-import LoadingSpinner from './components/common/LoadingSpinner';
 import ProtectedRoute from './components/common/ProtectedRoute';
+import LoadingSpinner from './components/common/LoadingSpinner';
 
 // Auth Components
 import Login from './components/auth/Login';
@@ -14,26 +19,37 @@ import AdminDashboard from './components/dashboard/AdminDashboard';
 import LibrarianDashboard from './components/dashboard/LibrarianDashboard';
 import BorrowerDashboard from './components/dashboard/BorrowerDashboard';
 
-// Book Management
+// Book Components
 import BookList from './components/books/BookList';
 import BookForm from './components/books/BookForm';
 import BookSearch from './components/books/BookSearch';
 
-// Borrower Management
+// Borrower Components
 import BorrowerList from './components/borrowers/BorrowerList';
 import BorrowerForm from './components/borrowers/BorrowerForm';
 
-// Circulation Management
+// Circulation Components
 import BorrowManagement from './components/circulation/BorrowManagement';
 import ReturnManagement from './components/circulation/ReturnManagement';
 import BorrowingHistory from './components/circulation/BorrowingHistory';
+import FineManagement from './components/circulation/FineManagement';
 
-// Admin Features
+// Admin Components
 import UserManagement from './components/admin/UserManagement';
 import SystemConfiguration from './components/admin/SystemConfiguration';
 import AnalyticsDashboard from './components/admin/AnalyticsDashboard';
+import Reports from './components/admin/Reports';
 
+// Notification Components
+import NotificationList from './components/notifications/NotificationList';
+import NotificationSettings from './components/notifications/NotificationSettings';
+
+// Styles
 import './App.css';
+import './styles/components/auth.css';
+import './styles/components/books.css';
+import './styles/components/dashboard.css';
+import './styles/components/circulation.css';
 
 function AppContent() {
   const { user, loading } = useAuth();
@@ -43,101 +59,54 @@ function AppContent() {
   }
 
   return (
-    <div className="App">
+    <div className="app">
       <Navbar />
       <main className="main-content">
         <Routes>
           {/* Public Routes */}
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
+          <Route path="/login" element={!user ? <Login /> : <Navigate to="/dashboard" />} />
+          <Route path="/register" element={!user ? <Register /> : <Navigate to="/dashboard" />} />
           
-          {/* Protected Routes - Role-based dashboards */}
-          <Route path="/" element={
+          {/* Protected Routes */}
+          <Route path="/" element={<Navigate to="/dashboard" />} />
+          
+          <Route path="/dashboard" element={
             <ProtectedRoute>
               {user?.role === 'ADMIN' && <AdminDashboard />}
               {user?.role === 'LIBRARIAN' && <LibrarianDashboard />}
-              {user?.role === 'BORROWER' && <BorrowerDashboard />}
-            </ProtectedRoute>
-          } />
-          
-          {/* Book Management */}
-          <Route path="/books" element={
-            <ProtectedRoute>
-              <BookList />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/books/new" element={
-            <ProtectedRoute allowedRoles={['ADMIN', 'LIBRARIAN']}>
-              <BookForm />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/books/edit/:id" element={
-            <ProtectedRoute allowedRoles={['ADMIN', 'LIBRARIAN']}>
-              <BookForm />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/search" element={
-            <ProtectedRoute>
-              <BookSearch />
-            </ProtectedRoute>
-          } />
-          
-          {/* Borrower Management */}
-          <Route path="/borrowers" element={
-            <ProtectedRoute allowedRoles={['ADMIN', 'LIBRARIAN']}>
-              <BorrowerList />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/borrowers/new" element={
-            <ProtectedRoute allowedRoles={['ADMIN', 'LIBRARIAN']}>
-              <BorrowerForm />
-            </ProtectedRoute>
-          } />
-          
-          {/* Circulation Management */}
-          <Route path="/circulation/borrow" element={
-            <ProtectedRoute allowedRoles={['ADMIN', 'LIBRARIAN']}>
-              <BorrowManagement />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/circulation/return" element={
-            <ProtectedRoute allowedRoles={['ADMIN', 'LIBRARIAN']}>
-              <ReturnManagement />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/circulation/history" element={
-            <ProtectedRoute>
-              <BorrowingHistory />
-            </ProtectedRoute>
-          } />
-          
-          {/* Admin Features */}
-          <Route path="/admin/users" element={
-            <ProtectedRoute allowedRoles={['ADMIN']}>
-              <UserManagement />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/admin/config" element={
-            <ProtectedRoute allowedRoles={['ADMIN']}>
-              <SystemConfiguration />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/admin/analytics" element={
-            <ProtectedRoute allowedRoles={['ADMIN', 'LIBRARIAN']}>
-              <AnalyticsDashboard />
+              {(user?.role === 'BORROWER' || user?.role === 'STAFF') && <BorrowerDashboard />}
             </ProtectedRoute>
           } />
 
-          {/* Redirect unknown routes */}
-          <Route path="*" element={<Navigate to="/" replace />} />
+          {/* Book Management */}
+          <Route path="/books" element={<ProtectedRoute><BookList /></ProtectedRoute>} />
+          <Route path="/books/add" element={<ProtectedRoute roles={['ADMIN', 'LIBRARIAN']}><BookForm /></ProtectedRoute>} />
+          <Route path="/books/edit/:id" element={<ProtectedRoute roles={['ADMIN', 'LIBRARIAN']}><BookForm /></ProtectedRoute>} />
+          <Route path="/books/search" element={<ProtectedRoute><BookSearch /></ProtectedRoute>} />
+
+          {/* Borrower Management */}
+          <Route path="/borrowers" element={<ProtectedRoute roles={['ADMIN', 'LIBRARIAN']}><BorrowerList /></ProtectedRoute>} />
+          <Route path="/borrowers/add" element={<ProtectedRoute roles={['ADMIN', 'LIBRARIAN']}><BorrowerForm /></ProtectedRoute>} />
+          <Route path="/borrowers/edit/:id" element={<ProtectedRoute roles={['ADMIN', 'LIBRARIAN']}><BorrowerForm /></ProtectedRoute>} />
+
+          {/* Circulation Management */}
+          <Route path="/circulation/borrow" element={<ProtectedRoute roles={['ADMIN', 'LIBRARIAN', 'STAFF']}><BorrowManagement /></ProtectedRoute>} />
+          <Route path="/circulation/return" element={<ProtectedRoute roles={['ADMIN', 'LIBRARIAN', 'STAFF']}><ReturnManagement /></ProtectedRoute>} />
+          <Route path="/circulation/history" element={<ProtectedRoute><BorrowingHistory /></ProtectedRoute>} />
+          <Route path="/circulation/fines" element={<ProtectedRoute><FineManagement /></ProtectedRoute>} />
+
+          {/* Admin Management */}
+          <Route path="/admin/users" element={<ProtectedRoute roles={['ADMIN']}><UserManagement /></ProtectedRoute>} />
+          <Route path="/admin/config" element={<ProtectedRoute roles={['ADMIN']}><SystemConfiguration /></ProtectedRoute>} />
+          <Route path="/admin/analytics" element={<ProtectedRoute roles={['ADMIN', 'LIBRARIAN']}><AnalyticsDashboard /></ProtectedRoute>} />
+          <Route path="/admin/reports" element={<ProtectedRoute roles={['ADMIN', 'LIBRARIAN']}><Reports /></ProtectedRoute>} />
+
+          {/* Notifications */}
+          <Route path="/notifications" element={<ProtectedRoute><NotificationList /></ProtectedRoute>} />
+          <Route path="/notifications/settings" element={<ProtectedRoute><NotificationSettings /></ProtectedRoute>} />
+
+          {/* 404 Page */}
+          <Route path="*" element={<div className="page-not-found">Page Not Found</div>} />
         </Routes>
       </main>
     </div>
@@ -147,7 +116,13 @@ function AppContent() {
 function App() {
   return (
     <Router>
-      <AppContent />
+      <AuthProvider>
+        <NotificationProvider>
+          <ThemeProvider>
+            <AppContent />
+          </ThemeProvider>
+        </NotificationProvider>
+      </AuthProvider>
     </Router>
   );
 }

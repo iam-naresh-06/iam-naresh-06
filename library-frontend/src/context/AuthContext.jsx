@@ -1,5 +1,6 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
-import { authService } from '../services/authService';
+// src/context/AuthContext.jsx
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import authService from '../services/authService';
 
 const AuthContext = createContext();
 
@@ -13,60 +14,82 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem('library_token'));
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    if (token) {
-      const userData = localStorage.getItem('library_user');
-      if (userData) {
-        setUser(JSON.parse(userData));
+    const initAuth = async () => {
+      const token = localStorage.getItem('library_token');
+      if (token) {
+        try {
+          const userData = await authService.getCurrentUser();
+          setUser(userData);
+        } catch (error) {
+          localStorage.removeItem('library_token');
+          console.error('Authentication failed:', error);
+        }
       }
-    }
-    setLoading(false);
-  }, [token]);
+      setLoading(false);
+    };
 
-  const login = async (email, password) => {
+    initAuth();
+  }, []);
+
+  const login = async (credentials) => {
     try {
-      const response = await authService.login(email, password);
-      const { token: newToken, role, username, userId } = response;
+      setError('');
+      const response = await authService.login(credentials);
+      const { user: userData, token } = response;
       
-      setToken(newToken);
-      setUser({ role, username, userId });
-      
-      localStorage.setItem('library_token', newToken);
-      localStorage.setItem('library_user', JSON.stringify({ role, username, userId }));
-      
-      return response;
-    } catch (error) {
-      throw error;
+      localStorage.setItem('library_token', token);
+      setUser(userData);
+      return { success: true };
+    } catch (err) {
+      const errorMsg = err.response?.data?.message || 'Login failed';
+      setError(errorMsg);
+      return { success: false, error: errorMsg };
     }
   };
 
   const register = async (userData) => {
     try {
+      setError('');
       const response = await authService.register(userData);
-      return response;
-    } catch (error) {
-      throw error;
+      const { user: newUser, token } = response;
+      
+      localStorage.setItem('library_token', token);
+      setUser(newUser);
+      return { success: true };
+    } catch (err) {
+      const errorMsg = err.response?.data?.message || 'Registration failed';
+      setError(errorMsg);
+      return { success: false, error: errorMsg };
     }
   };
 
   const logout = () => {
-    setToken(null);
-    setUser(null);
     localStorage.removeItem('library_token');
-    localStorage.removeItem('library_user');
+    setUser(null);
+    authService.logout();
+  };
+
+  const updateUser = (updatedUser) => {
+    setUser(updatedUser);
+  };
+
+  const clearError = () => {
+    setError('');
   };
 
   const value = {
     user,
-    token,
     login,
     register,
     logout,
-    isAuthenticated: !!token,
-    loading
+    updateUser,
+    error,
+    loading,
+    clearError
   };
 
   return (

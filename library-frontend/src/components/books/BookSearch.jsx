@@ -1,155 +1,161 @@
-import React, { useState } from 'react';
-import { bookService } from '../../services/bookService';
-import BookCard from './BookCard';
+// src/components/books/BookSearch.jsx
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import LoadingSpinner from '../common/LoadingSpinner';
+import bookService from '../../services/bookService';
 
 const BookSearch = () => {
-  const [searchCriteria, setSearchCriteria] = useState({
-    query: '',
-    author: '',
-    genre: '',
-    publicationYear: '',
-    available: ''
-  });
-  const [results, setResults] = useState([]);
+  const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filters, setFilters] = useState({
+    genre: '',
+    author: '',
+    availability: ''
+  });
 
-  const handleInputChange = (e) => {
-    setSearchCriteria({
-      ...searchCriteria,
-      [e.target.name]: e.target.value
-    });
-  };
+  useEffect(() => {
+    if (searchQuery || filters.genre || filters.author) {
+      performSearch();
+    }
+  }, [searchQuery, filters]);
 
-  const handleSearch = async (e) => {
-    e.preventDefault();
+const performSearch = async () => {
     setLoading(true);
-    setError('');
-
     try {
-      const searchResults = await bookService.searchBooks(
-        searchCriteria.query,
-        searchCriteria.author,
-        searchCriteria.genre,
-        searchCriteria.available === 'true' ? true : searchCriteria.available === 'false' ? false : undefined
-      );
-      setResults(searchResults);
-    } catch (err) {
-      setError('Search failed. Please try again.');
+      // Use bookService.searchBooks() instead of searchBooks()
+      const results = await bookService.searchBooks({
+        query: searchQuery,
+        genre: filters.genre,
+        author: filters.author,
+        available: filters.availability === 'available'
+      });
+      setBooks(results);
+    } catch (error) {
+      console.error('Search failed:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const clearSearch = () => {
-    setSearchCriteria({
-      query: '',
-      author: '',
-      genre: '',
-      publicationYear: '',
-      available: ''
-    });
-    setResults([]);
+  const handleFilterChange = (key, value) => {
+    setFilters(prev => ({ ...prev, [key]: value }));
+  };
+
+  const clearFilters = () => {
+    setSearchQuery('');
+    setFilters({ genre: '', author: '', availability: '' });
   };
 
   return (
-    <div className="book-search">
+    <div className="books-container">
       <div className="page-header">
-        <h1>Advanced Book Search</h1>
-        <p>Search our library collection with advanced filters</p>
+        <h1>Book Search</h1>
+        <p>Find books in our library collection</p>
       </div>
 
-      <form onSubmit={handleSearch} className="search-form">
-        <div className="search-grid">
-          <div className="form-group">
-            <label>Title/Keyword:</label>
-            <input
-              type="text"
-              name="query"
-              value={searchCriteria.query}
-              onChange={handleInputChange}
-              placeholder="Search by title, author, or keyword"
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Author:</label>
-            <input
-              type="text"
-              name="author"
-              value={searchCriteria.author}
-              onChange={handleInputChange}
-              placeholder="Filter by author"
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Genre:</label>
-            <input
-              type="text"
-              name="genre"
-              value={searchCriteria.genre}
-              onChange={handleInputChange}
-              placeholder="Filter by genre"
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Publication Year:</label>
-            <input
-              type="number"
-              name="publicationYear"
-              value={searchCriteria.publicationYear}
-              onChange={handleInputChange}
-              placeholder="Filter by year"
-              min="1000"
-              max="2025"
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Availability:</label>
-            <select
-              name="available"
-              value={searchCriteria.available}
-              onChange={handleInputChange}
-            >
-              <option value="">All Books</option>
-              <option value="true">Available Only</option>
-              <option value="false">Borrowed Only</option>
-            </select>
-          </div>
+      <div className="search-controls">
+        <div className="search-box">
+          <input
+            type="text"
+            placeholder="Search by title, author, or ISBN..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="search-input"
+          />
         </div>
 
-        <div className="search-actions">
-          <button type="submit" disabled={loading}>
-            {loading ? 'Searching...' : 'Search Books'}
-          </button>
-          <button type="button" onClick={clearSearch} className="secondary">
-            Clear
+        <div className="filter-controls">
+          <select
+            value={filters.genre}
+            onChange={(e) => handleFilterChange('genre', e.target.value)}
+            className="form-select"
+          >
+            <option value="">All Genres</option>
+            <option value="Fiction">Fiction</option>
+            <option value="Non-Fiction">Non-Fiction</option>
+            <option value="Science">Science</option>
+            <option value="Technology">Technology</option>
+            <option value="History">History</option>
+          </select>
+
+          <input
+            type="text"
+            placeholder="Filter by author..."
+            value={filters.author}
+            onChange={(e) => handleFilterChange('author', e.target.value)}
+            className="form-input"
+          />
+
+          <select
+            value={filters.availability}
+            onChange={(e) => handleFilterChange('availability', e.target.value)}
+            className="form-select"
+          >
+            <option value="">All Books</option>
+            <option value="available">Available Only</option>
+            <option value="unavailable">Unavailable</option>
+          </select>
+
+          <button onClick={clearFilters} className="btn btn-secondary">
+            Clear Filters
           </button>
         </div>
-      </form>
+      </div>
 
-      {error && <div className="error-message">{error}</div>}
+      {loading && <LoadingSpinner />}
 
       <div className="search-results">
-        <h2>Search Results ({results.length} books found)</h2>
+        <h3>Search Results ({books.length} books found)</h3>
         
-        {results.length > 0 ? (
-          <div className="results-grid">
-            {results.map(book => (
-              <BookCard key={book.id} book={book} />
-            ))}
+        {books.length === 0 && !loading && (
+          <div className="empty-state">
+            <p>No books found matching your criteria.</p>
           </div>
-        ) : (
-          !loading && (
-            <div className="no-results">
-              <p>No books found matching your search criteria.</p>
-              <p>Try adjusting your filters or search terms.</p>
-            </div>
-          )
         )}
+
+        <div className="books-grid">
+          {books.map(book => (
+            <div key={book.id} className="book-card">
+              <div className="book-cover">
+                {book.coverImage ? (
+                  <img src={book.coverImage} alt={book.title} />
+                ) : (
+                  <div className="book-cover-placeholder">
+                    {book.title.charAt(0)}
+                  </div>
+                )}
+              </div>
+              
+              <div className="book-info">
+                <h4 className="book-title">{book.title}</h4>
+                <p className="book-author">by {book.author}</p>
+                <p className="book-isbn">ISBN: {book.isbn}</p>
+                <p className="book-genre">{book.genre}</p>
+                
+                <div className="book-status">
+                  <span className={`status ${book.availableCopies > 0 ? 'available' : 'unavailable'}`}>
+                    {book.availableCopies > 0 ? 
+                      `${book.availableCopies} available` : 
+                      'Unavailable'
+                    }
+                  </span>
+                </div>
+
+                <div className="book-actions">
+                  <Link to={`/books/details/${book.id}`} className="btn btn-sm btn-primary">
+                    View Details
+                  </Link>
+                  {book.availableCopies > 0 && (
+                    <Link to={`/circulation/borrow?bookId=${book.id}`} className="btn btn-sm btn-success">
+                      Borrow
+                    </Link>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

@@ -1,62 +1,30 @@
-// src/main/java/com/examly/springapp/config/CorsConfig.java
 package com.examly.springapp.config;
 
+// src/main/java/com/yourpackage/config/CorsConfig.java
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
+
+import java.util.Arrays;
 
 @Configuration
-public class CorsConfig implements WebMvcConfigurer {
+public class CorsConfig {
 
-    @Override
-    public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/")
-                .allowedOrigins("http://localhost:3000") // React runs on 8081
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-                .allowedHeaders("*")
-                .allowCredentials(true);
-    }
-
-    @Override
-    public void configurePathMatch(PathMatchConfigurer configurer) {
-        configurer.setUseTrailingSlashMatch(false);
+    @Bean
+    public CorsFilter corsFilter() {
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        CorsConfiguration config = new CorsConfiguration();
+        
+        config.setAllowCredentials(true);
+        config.addAllowedOrigin("http://localhost:3000"); // Your frontend URL
+        config.addAllowedHeader("*");
+        config.addAllowedMethod("*");
+        config.setExposedHeaders(Arrays.asList("Authorization", "Content-Type"));
+        
+        source.registerCorsConfiguration("/api/**", config);
+        return new CorsFilter(source);
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// package com.examly.springapp.config;
-
-// import org.springframework.context.annotation.Configuration;
-// import org.springframework.web.servlet.config.annotation.CorsRegistry;
-// import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-
-// @Configuration
-// public class CorsConfig implements WebMvcConfigurer {
-//     @Override
-//     public void addCorsMappings(CorsRegistry registry) {
-//         registry.addMapping("/**")
-//                 .allowedOrigins("*")
-//                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-//                 .allowedHeaders("*")
-//                 .allowCredentials(false)
-//                 .maxAge(3600);
-//     }
-// }

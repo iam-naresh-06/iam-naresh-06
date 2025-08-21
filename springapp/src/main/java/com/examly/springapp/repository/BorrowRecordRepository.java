@@ -49,4 +49,15 @@ public interface BorrowRecordRepository extends JpaRepository<BorrowRecord, Long
     // Count by user ID through borrower
     @Query("SELECT COUNT(br) FROM BorrowRecord br WHERE br.borrower.user.id = :userId AND br.status = :status")
     long countByUserIdAndStatus(@Param("userId") Long userId, @Param("status") BorrowRecord.Status status);
+
+    @Query("SELECT br FROM BorrowRecord br WHERE " +
+           "br.status = :status AND " +
+           "(br.dueDate BETWEEN :startDate AND :endDate OR br.dueDate < :currentDate)")
+    List<BorrowRecord> findByDueDateBetweenOrDueDateBeforeAndStatus(
+        @Param("startDate") LocalDate startDate,
+        @Param("endDate") LocalDate endDate,
+        @Param("currentDate") LocalDate currentDate,
+        @Param("status") BorrowRecord.Status status
+    );
+
 }
