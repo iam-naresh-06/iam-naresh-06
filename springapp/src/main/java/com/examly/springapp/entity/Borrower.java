@@ -32,37 +32,28 @@ public class Borrower {
     private Boolean isActive = true;
 
     private String emergencyContact;
-    private String membershipType; // e.g., "STUDENT", "FACULTY", "STAFF"
+    private String membershipType;
     private LocalDateTime membershipStartDate;
     private LocalDateTime membershipEndDate;
 
+    // Add this relationship
     @OneToMany(mappedBy = "borrower", cascade = CascadeType.ALL)
     private List<BorrowRecord> borrowHistory;
 
-    // Helper method to check if borrower can borrow more books
+    // Helper methods remain the same...
     public boolean canBorrowMore() {
         return isActive && currentBorrowedCount < borrowingLimit;
     }
 
-    // Helper method to increment borrowed count
     public void incrementBorrowedCount() {
         if (currentBorrowedCount < borrowingLimit) {
             currentBorrowedCount++;
         }
     }
 
-    // Helper method to decrement borrowed count
     public void decrementBorrowedCount() {
         if (currentBorrowedCount > 0) {
             currentBorrowedCount--;
         }
-    }
-    // Add this method to Borrower entity
-    public String getUserEmail() {
-        return user != null ? user.getEmail() : null;
-    }
-
-    public String getUserFullName() {
-        return user != null ? user.getFirstName() + " " + user.getLastName() : null;
     }
 }

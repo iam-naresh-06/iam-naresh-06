@@ -4,8 +4,6 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.PositiveOrZero;
 import lombok.Data;
 
-import java.util.List;
-
 @Entity
 @Data
 public class Book {
@@ -35,8 +33,9 @@ public class Book {
     @PositiveOrZero
     private Integer availableCopies = 1;
 
-    @OneToMany(mappedBy = "book", cascade = CascadeType.ALL)
-    private List<BorrowRecord> borrowHistory;
+    // REMOVE THIS LINE - It's causing circular dependency
+    // @OneToMany(mappedBy = "book", cascade = CascadeType.ALL)
+    // private List<BorrowRecord> borrowHistory;
 
     public boolean isAvailable() {
         return availableCopies != null && availableCopies > 0;

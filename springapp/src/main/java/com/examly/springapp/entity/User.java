@@ -7,6 +7,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -22,6 +23,9 @@ public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<BorrowRecord> borrowHistory = new ArrayList<>();
 
     @Column(unique = true, nullable = false, length = 50)
     private String username;
@@ -43,8 +47,9 @@ public class User implements UserDetails {
     private String address;
     private Boolean isActive = true;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private List<BorrowRecord> borrowHistory;
+    // REMOVE THIS LINE - It's causing the circular dependency
+    // @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    // private List<BorrowRecord> borrowHistory;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

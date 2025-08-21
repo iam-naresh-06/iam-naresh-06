@@ -15,10 +15,14 @@ public class BorrowRecord {
     public enum Status {
         BORROWED, RETURNED, OVERDUE, LOST
     }
-
+    
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
 
     @ManyToOne
     @JoinColumn(name = "book_id", nullable = false)
