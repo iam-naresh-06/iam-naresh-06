@@ -1,21 +1,28 @@
 // src/services/notificationService.js
 import api from './api';
 
+const handleNotificationError = (error, defaultMessage) => {
+  if (error.code === 'ERR_NETWORK') {
+    console.warn('Notification service unavailable');
+    return null; // Silently fail for notifications
+  }
+  console.error(defaultMessage, error);
+  return null;
+};
+
 const notificationService = {
   getNotifications: async () => {
     try {
-      const response = await api.get('/notifications');
+      const response = await api.get('/api/notifications');
       return response.data;
     } catch (error) {
-      console.error('Failed to fetch notifications:', error);
-      // Return empty array instead of throwing for better UX
-      return [];
+      return handleNotificationError(error, 'Failed to fetch notifications:');
     }
   },
 
   getUnreadNotifications: async () => {
     try {
-      const response = await api.get('/notifications/unread');
+      const response = await api.get('/api/notifications/unread'); // Add /api
       return response.data;
     } catch (error) {
       console.error('Failed to fetch unread notifications:', error);
@@ -25,17 +32,17 @@ const notificationService = {
 
   getUnreadCount: async () => {
     try {
-      const response = await api.get('/notifications/unread-count');
+      const response = await api.get('/api/notifications/unread-count');
       return response.data;
     } catch (error) {
-      console.error('Failed to fetch unread count:', error);
-      return 0;
+      handleNotificationError(error, 'Failed to fetch unread count:');
+      return 0; // Return 0 instead of throwing
     }
   },
 
   markAsRead: async (notificationId) => {
     try {
-      await api.patch(`/notifications/${notificationId}/read`);
+      await api.patch(`/api/notifications/${notificationId}/read`); // Add /api
       return true;
     } catch (error) {
       console.error('Failed to mark notification as read:', error);
@@ -45,7 +52,7 @@ const notificationService = {
 
   markAllAsRead: async () => {
     try {
-      await api.patch('/notifications/read-all');
+      await api.patch('/api/notifications/read-all'); // Add /api
       return true;
     } catch (error) {
       console.error('Failed to mark all notifications as read:', error);
@@ -55,7 +62,7 @@ const notificationService = {
 
   deleteNotification: async (notificationId) => {
     try {
-      await api.delete(`/notifications/${notificationId}`);
+      await api.delete(`/api/notifications/${notificationId}`); // Add /api
       return true;
     } catch (error) {
       console.error('Failed to delete notification:', error);

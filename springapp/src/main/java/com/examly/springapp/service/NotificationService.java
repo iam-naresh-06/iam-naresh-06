@@ -98,8 +98,6 @@ public class NotificationService {
             createDueDateReminder(userId, bookTitle, dueDate);
         }
     }
-     @Scheduled(cron = "0 0 9 * * ?") // Runs daily at 9:00 AM
-    public void scheduledDueDateCheck() {
-        checkDueDates();
-    }
+    
+}
 }

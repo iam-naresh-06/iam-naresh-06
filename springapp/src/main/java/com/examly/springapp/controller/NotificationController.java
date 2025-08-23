@@ -14,6 +14,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/notifications")
+@CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true") // ← ADD THIS
 @RequiredArgsConstructor
 public class NotificationController {
 

@@ -2,8 +2,9 @@ package com.examly.springapp.entity;
 
 import java.time.LocalDateTime;
 
-import com.examly.springapp.entity.User;
 
+
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -38,6 +39,7 @@ public class Notification {
     @Enumerated(EnumType.STRING)
     private NotificationType type;
 
+    @Column(name = "`read`")
     private boolean read;
 
     @Builder.Default

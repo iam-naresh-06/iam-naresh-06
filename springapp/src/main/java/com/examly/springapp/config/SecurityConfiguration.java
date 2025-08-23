@@ -36,6 +36,7 @@ public class SecurityConfiguration {
                         .requestMatchers("/api/books/search").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/librarian/**").hasAnyRole("LIBRARIAN", "ADMIN")
+                        .requestMatchers("/api/notifications/**").authenticated() // ← ADD THIS LINE
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

@@ -50,7 +50,7 @@ import './styles/components/auth.css';
 import './styles/components/books.css';
 import './styles/components/dashboard.css';
 import './styles/components/circulation.css';
-
+import ConnectionStatus from './components/common/ConnnectionStatus';
 function AppContent() {
   const { user, loading } = useAuth();
 
@@ -61,6 +61,7 @@ function AppContent() {
   return (
     <div className="app">
       <Navbar />
+      <ConnectionStatus />
       <main className="main-content">
         <Routes>
           {/* Public Routes */}
