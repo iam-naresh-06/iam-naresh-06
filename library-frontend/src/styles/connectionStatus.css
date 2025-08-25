@@ -1,0 +1,16 @@
+/* src/styles/connectionStatus.css */
+
+.connection-status {
+  text-align: center;
+  padding: 0.5rem 0;
+  font-weight: 600;
+  color: white;
+}
+
+.connection-status.online {
+  background-color: #28a745; /* green */
+}
+
+.connection-status.offline {
+  background-color: #dc3545; /* red */
+}

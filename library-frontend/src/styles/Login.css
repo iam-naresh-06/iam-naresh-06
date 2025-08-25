@@ -1,0 +1,45 @@
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+}
+
+.login-card {
+  background: var(--card-bg);
+  padding: var(--spacing-xl);
+  border-radius: var(--rounded-lg);
+  box-shadow: var(--shadow-lg);
+  width: 100%;
+  max-width: 400px;
+}
+
+.login-card h2 {
+  margin-bottom: var(--spacing-lg);
+  text-align: center;
+  font-size: var(--font-size-xl);
+}
+
+.login-card input {
+  width: 100%;
+  padding: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
+  border: 1px solid var(--border);
+  border-radius: var(--rounded-sm);
+}
+
+.login-card button {
+  width: 100%;
+  padding: var(--spacing-sm);
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: var(--rounded-sm);
+  cursor: pointer;
+  font-size: var(--font-size-md);
+}
+
+.login-card button:hover {
+  background: var(--primary-dark);
+}

@@ -1,0 +1,29 @@
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--primary);
+  color: #fff;
+  padding: var(--spacing-md) var(--spacing-lg);
+  box-shadow: var(--shadow-md);
+}
+
+.navbar .logo {
+  font-size: var(--font-size-lg);
+  font-weight: bold;
+}
+
+.navbar .menu {
+  display: flex;
+  gap: var(--spacing-md);
+}
+
+.navbar a {
+  color: #fff;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.navbar a:hover {
+  text-decoration: underline;
+}
